@@ -1,0 +1,95 @@
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: clasificador-solicitudes-pipeline
+spec:
+  params:
+    - name: DATA_BUCKET
+      type: string
+      default: data
+    - name: DATA_OBJECT
+      type: string
+      default: solicitudes_ciudadanas_pba.csv
+    - name: MODEL_BUCKET
+      type: string
+      default: models
+    - name: MODEL_OBJECT
+      type: string
+      default: model_v1.pkl
+    - name: AWS_ACCESS_KEY_ID
+      type: string
+    - name: AWS_SECRET_ACCESS_KEY
+      type: string
+    - name: AWS_S3_ENDPOINT
+      type: string
+      default: http://minio:9000
+  workspaces:
+    - name: shared-workspace
+  tasks:
+    - name: download-dataset
+      taskSpec:
+        steps:
+          - name: download-dataset
+            image: amazon/aws-cli
+            script: |
+              echo 'Descargando datos desde S3...'
+              aws configure set aws_access_key_id $(params.AWS_ACCESS_KEY_ID)
+              aws configure set aws_secret_access_key $(params.AWS_SECRET_ACCESS_KEY)
+              aws --endpoint-url=$(params.AWS_S3_ENDPOINT) s3 cp s3://$(params.DATA_BUCKET)/$(params.DATA_OBJECT) $(workspaces.shared-workspace.path)/data.csv
+              echo 'Datos descargados.'
+      params:
+        - name: DATA_BUCKET
+          value: $(params.DATA_BUCKET)
+        - name: DATA_OBJECT
+          value: $(params.DATA_OBJECT)
+        - name: AWS_ACCESS_KEY_ID
+          value: $(params.AWS_ACCESS_KEY_ID)
+        - name: AWS_SECRET_ACCESS_KEY
+          value: $(params.AWS_SECRET_ACCESS_KEY)
+        - name: AWS_S3_ENDPOINT
+          value: $(params.AWS_S3_ENDPOINT)
+      workspaces:
+        - name: shared-workspace
+          workspace: shared-workspace
+    - name: train-and-export-model
+      runAfter:
+        - download-dataset
+      taskSpec:
+        steps:
+          - name: train-and-export-model
+            image: python:3.11
+            script: |
+              echo 'Instalando dependencias...'
+              pip install pandas scikit-learn joblib
+              echo 'Preprocesando datos...'
+              python -c "import pandas as pd; from sklearn.model_selection import train_test_split; from sklearn.feature_extraction.text import TfidfVectorizer; from sklearn.linear_model import LogisticRegression; from sklearn.metrics import classification_report; import joblib; df = pd.read_csv('$(workspaces.shared-workspace.path)/data.csv'); X = df['texto_solicitud']; y = df['departamento_destino']; vectorizer = TfidfVectorizer(); X_vec = vectorizer.fit_transform(X); X_train, X_test, y_train, y_test = train_test_split(X_vec, y, test_size=0.2, random_state=42); print('Entrenando modelo...'); model = LogisticRegression(max_iter=1000); model.fit(X_train, y_train); print('Evaluando modelo...'); y_pred = model.predict(X_test); print(classification_report(y_test, y_pred)); joblib.dump({'model': model, 'vectorizer': vectorizer}, '$(workspaces.shared-workspace.path)/model.pkl'); print('Modelo guardado en model.pkl')"
+      workspaces:
+        - name: shared-workspace
+          workspace: shared-workspace
+    - name: upload-model
+      runAfter:
+        - train-and-export-model
+      taskSpec:
+        steps:
+          - name: upload-model
+            image: amazon/aws-cli
+            script: |
+              echo 'Exportando modelo a S3...'
+              aws configure set aws_access_key_id $(params.AWS_ACCESS_KEY_ID)
+              aws configure set aws_secret_access_key $(params.AWS_SECRET_ACCESS_KEY)
+              aws --endpoint-url=$(params.AWS_S3_ENDPOINT) s3 cp $(workspaces.shared-workspace.path)/model.pkl s3://$(params.MODEL_BUCKET)/$(params.MODEL_OBJECT)
+              echo 'Modelo exportado.'
+      params:
+        - name: MODEL_BUCKET
+          value: $(params.MODEL_BUCKET)
+        - name: MODEL_OBJECT
+          value: $(params.MODEL_OBJECT)
+        - name: AWS_ACCESS_KEY_ID
+          value: $(params.AWS_ACCESS_KEY_ID)
+        - name: AWS_SECRET_ACCESS_KEY
+          value: $(params.AWS_SECRET_ACCESS_KEY)
+        - name: AWS_S3_ENDPOINT
+          value: $(params.AWS_S3_ENDPOINT)
+      workspaces:
+        - name: shared-workspace
+          workspace: shared-workspace

@@ -1,4 +1,6 @@
 # 🏛️ Demo OpenShift AI: Clasificación Inteligente de Solicitudes Ciudadanas
+# 🏛️ Demo OpenShift AI: Clasificación Inteligente de Solicitudes Ciudadanas
+> **Nota:** Este proyecto es ficticio, creado únicamente para fines de demostración y no representa datos reales ni solicitudes ciudadanas auténticas.
 ## Provincia de Buenos Aires - Transformación Digital del Sector Público
 
 ![OpenShift AI](https://img.shields.io/badge/OpenShift-AI-red?style=for-the-badge&logo=redhat)

@@ -1,4 +1,7 @@
+
 # Clasificador de Solicitudes Ciudadanas - API de Inferencia
+
+> **Nota:** Este proyecto es ficticio, creado únicamente para fines de demostración y no representa datos reales ni solicitudes ciudadanas auténticas.
 
 Este proyecto despliega un modelo de clasificación de solicitudes ciudadanas como una API REST en un contenedor, descargando el modelo desde un almacenamiento S3/MinIO.
 

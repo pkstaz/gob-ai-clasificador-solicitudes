@@ -1,3 +1,23 @@
+### Ejemplos adicionales
+
+```sh
+# Ejemplo 1: Reclamo de seguridad
+curl -X POST "http://localhost:8080/predict" \
+	-H "Content-Type: application/json" \
+	-d '{"texto": "Hay robos frecuentes en mi barrio, solicito patrullaje policial."}'
+
+# Ejemplo 2: Solicitud de salud
+curl -X POST "http://localhost:8080/predict" \
+	-H "Content-Type: application/json" \
+	-d '{"texto": "Necesito turno para vacunación contra la gripe en el hospital municipal."}'
+
+# Ejemplo 3: Consulta sobre educación
+curl -X POST "http://localhost:8080/predict" \
+	-H "Content-Type: application/json" \
+	-d '{"texto": "¿Cuándo comienzan las inscripciones para las escuelas públicas?"}'
+```
+
+Cada ejemplo devolverá el departamento predicho y el nivel de confianza según el modelo entrenado.
 # 🏛️ Demo OpenShift AI: Clasificación Inteligente de Solicitudes Ciudadanas
 > **Nota:** Este proyecto es ficticio, creado únicamente para fines de demostración y no representa datos reales ni solicitudes ciudadanas auténticas.
 ## Provincia de Buenos Aires - Transformación Digital del Sector Público

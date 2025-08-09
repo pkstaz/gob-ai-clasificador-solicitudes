@@ -39,6 +39,29 @@ Este proyecto es una **demostración práctica de MLOps** usando OpenShift AI pa
 
 ## 🚀 Inicio Rápido
 
+## Consumo de la API de Inferencia
+
+El modelo se expone como una API REST (FastAPI) en el endpoint `/predict`.
+
+### Ejemplo de uso con curl
+
+```sh
+curl -X POST "http://localhost:8080/predict" \
+	-H "Content-Type: application/json" \
+	-d '{"texto": "Ejemplo de solicitud ciudadana para clasificar"}'
+```
+
+### Respuesta esperada
+
+```json
+{
+	"prediccion": "Ministerio de Salud",
+	"confianza": 0.24
+}
+```
+
+Puedes cambiar el texto para probar diferentes solicitudes. Si el modelo está desplegado en otro endpoint, reemplaza la URL por la correspondiente.
+
 ### Prerrequisitos
 
 - Python 3.8+

@@ -53,13 +53,12 @@ class InputData(BaseModel):
 
 @app.post("/predict")
 async def predict(data: InputData):
-    # Si existe vectorizer, transformar el texto
-    if 'vectorizer' in locals() and vectorizer is not None:
+    global vectorizer
+    if 'vectorizer' in globals() and vectorizer is not None:
         X = vectorizer.transform([data.texto])
     else:
         X = pd.Series([data.texto])
     pred = model.predict(X)
-    # Calcular confianza si el modelo tiene predict_proba
     if hasattr(model, "predict_proba"):
         proba = model.predict_proba(X)
         indice = list(model.classes_).index(pred[0])

@@ -33,8 +33,20 @@ if not os.path.exists(local_model_path):
         logging.error(f"Error al descargar el modelo desde S3: {e}")
         raise RuntimeError(f"No se pudo descargar el modelo desde S3: {e}")
 
-# Cargar el modelo
-model = joblib.load(local_model_path)
+
+# Cargar el modelo, soportando ambos formatos
+try:
+    model_bundle = joblib.load(local_model_path)
+    if isinstance(model_bundle, dict) and 'model' in model_bundle:
+        model = model_bundle['model']
+        vectorizer = model_bundle.get('vectorizer', None)
+    else:
+        model = model_bundle
+        vectorizer = None
+except Exception as e:
+    import sys
+    print(f"Error al cargar el modelo: {e}", file=sys.stderr)
+    raise RuntimeError(f"No se pudo cargar el modelo: {e}")
 
 class InputData(BaseModel):
     texto: str
